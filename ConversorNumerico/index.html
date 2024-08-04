@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="conversor.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Conversor Numérico</title>
+</head>
+<body>
+    <section id="main">
+        <form id="convertForm">
+            <p id="titulo">Conversor Numérico</p>
+            <label for="tipoConversao">Selecione o modo de conversão:</label>
+            <select id="tipoConversao" name="tipoConversao">
+                <option value="ParaRomano">De número para romano</option>
+                <option value="ParaReal">De romano para número</option>
+            </select>
+            <label for="Valor">Digite o valor:</label>
+            <input type="text" id="Valor" name="Valor" required>
+            <button type="submit" id="converter">Converter</button>
+            <p id="resultados"><strong>Resultado: </strong><span id="resultado"></span></p>
+        </form>
+    </section>
+</body>
+</html>

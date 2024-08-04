@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treemap de Artilheiros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #form-container {
+            margin-bottom: 20px;
+        }
+        .goleador {
+            margin-bottom: 10px;
+        }
+        #treemap {
+            border: 1px solid #000;
+            margin-top: 20px;
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+        .tile {
+            box-sizing: border-box;
+            padding: 5px;
+            border: 1px solid #000;
+            color: #000;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h1>Treemap de Artilheiros</h1>
+
+    <div id="form-container">
+        <h2>Adicionar Goleador</h2>
+        <form id="goleador-form">
+            <label for="goleador-name">Nome do Jogador:</label>
+            <input type="text" id="goleador-name" name="goleador-name" required>
+            <label for="gols2022">Gols em 2022:</label>
+            <input type="number" id="gols2022" name="gols2022" min="0" required>
+            <label for="gols2023">Gols em 2023:</label>
+            <input type="number" id="gols2023" name="gols2023" min="0" required>
+            <button type="submit">Adicionar Goleador</button>
+        </form>
+    </div>
+
+    <div id="treemap"></div>
+
+    <script src="treemap.js"></script>
+</body>
+</html>
