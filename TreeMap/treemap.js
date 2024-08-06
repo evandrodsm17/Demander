@@ -1,162 +1,100 @@
-class Goleador {
-    constructor(name, gols2022, gols2023) {
-        this.name = name;
-        this.gols2022 = gols2022;
-        this.gols2023 = gols2023;
-    }
-
-    getGols2023() {
-        return this.gols2023;
-    }
-
-    getColor() {
-        if (this.gols2023 > this.gols2022) {
-            return '#00FF00'; // Verde (melhorou)
-        } else if (this.gols2023 < this.gols2022) {
-            return '#FF0000'; // Vermelho (piorou)
-        } else {
-            return '#0000FF'; // Azul (neutro)
-        }
-    }
-}
-
-class Treemap {
-    constructor(containerId) {
-        this.goleadores = [];
-        this.container = document.getElementById(containerId);
-        this.totalGols = 0;
-    }
-
-    addGoleador(goleador) {
-        this.goleadores.push(goleador);
-        this.totalGols += goleador.getGols2023();
-        this.render();
-    }
-
-    render() {
-        this.container.innerHTML = ''; // Limpa o container
-
-        if (this.totalGols === 0) return;
-
-        const { offsetWidth: width, offsetHeight: height } = this.container;
-        const totalArea = width * height;
-        const sortedGoleadores = this.goleadores.sort((a, b) => b.getGols2023() - a.getGols2023());
-        const areas = sortedGoleadores.map(goleador => ({
-            goleador,
-            area: (goleador.getGols2023() / this.totalGols) * totalArea
-        }));
-
-        const rects = this.squarify(areas, width, height);
-        
-        rects.forEach(({ goleador, x, y, w, h }) => {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            tile.style.left = `${x}px`;
-            tile.style.top = `${y}px`;
-            tile.style.width = `${w}px`;
-            tile.style.height = `${h}px`;
-            tile.style.backgroundColor = goleador.getColor();
-            tile.innerText = `${goleador.name}\n(${goleador.getGols2023()} gols)`;
-
-            this.container.appendChild(tile);
-        });
-
-        const totalTile = document.createElement('div');
-        totalTile.className = 'tile';
-        totalTile.style.left = '0';
-        totalTile.style.bottom = '0';
-        totalTile.style.width = '100%';
-        totalTile.style.height = '20px';
-        totalTile.style.backgroundColor = '#FFFFFF';
-        totalTile.innerText = `TOTAL: ${this.totalGols} gols`;
-        this.container.appendChild(totalTile);
-    }
-
-    squarify(areas, width, height) {
-        let row = [];
-        let rects = [];
-        let x = 0;
-        let y = 0;
-        let w = width;
-        let h = height;
-
-        while (areas.length > 0) {
-            let area = areas[0].area;
-            let rect = this.layout(row, area, x, y, w, h);
-            let newRatio = this.worst(row, w, h);
-            let newRow = row.slice();
-            newRow.push(areas[0]);
-
-            if (rect === null || this.worst(newRow, w, h) < newRatio) {
-                rects = rects.concat(row.map(r => ({
-                    goleador: r.goleador,
-                    x: r.x,
-                    y: r.y,
-                    w: r.w,
-                    h: r.h
-                })));
-                row = [];
-                x = rect ? rect.x : x;
-                y = rect ? rect.y : y;
-                w = rect ? rect.w : w;
-                h = rect ? rect.h : h;
-            } else {
-                areas.shift();
-                row.push(rect);
-            }
+document.addEventListener('DOMContentLoaded', () => {
+    class Empresa {
+        constructor(nome, valor2023, valor2024) {
+            this.nome = nome;
+            this.valor2023 = valor2023;
+            this.valor2024 = valor2024;
         }
 
-        return rects.concat(row.map(r => ({
-            goleador: r.goleador,
-            x: r.x,
-            y: r.y,
-            w: r.w,
-            h: r.h
-        })));
-    }
+        getDesempenho() {
+            return this.valor2024;
+        }
 
-    layout(row, area, x, y, w, h) {
-        if (w >= h) {
-            let width = area / h;
-            return {
-                x: x + width,
-                y: y,
-                w: width,
-                h: h
-            };
-        } else {
-            let height = area / w;
-            return {
-                x: x,
-                y: y + height,
-                w: w,
-                h: height
-            };
+        getMudancaPercentual() {
+            return (this.valor2024 - this.valor2023) / (this.valor2023 || 1);
         }
     }
 
-    worst(row, w, h) {
-        if (row.length === 0) return 1;
-        let areas = row.map(r => r.area);
-        let min = Math.min.apply(Math, areas);
-        let max = Math.max.apply(Math, areas);
-        let s = areas.reduce((a, b) => a + b, 0);
-        let squarified = Math.max((w * w * max) / (s * s), (h * h * max) / (s * s)) / (Math.min((w * w * min) / (s * s), (h * h * min) / (s * s)));
-        return squarified;
+    class Treemap {
+        constructor(containerId) {
+            this.container = document.getElementById(containerId);
+            this.empresas = [];
+        }
+
+        adicionarEmpresa(empresa) {
+            this.empresas.push(empresa);
+            this.render();
+        }
+
+        calcularCor(mudancaPercentual) {
+            // Define o intervalo para a mudança percentual
+            const maxMudanca = Math.max(...this.empresas.map(e => e.getMudancaPercentual()), 0);
+            const minMudanca = Math.min(...this.empresas.map(e => e.getMudancaPercentual()), 0);
+
+            // Normaliza a mudança percentual para o intervalo [0, 1]
+            const normalizado = (mudancaPercentual - minMudanca) / (maxMudanca - minMudanca || 1);
+
+            // Calcula a intensidade da cor verde e vermelha
+            const red = Math.floor((1 - normalizado) * 255);
+            const green = Math.floor(normalizado * 255);
+
+            return `rgb(${red}, ${green}, 0)`;
+        }
+
+        render() {
+            const data = this.empresas.map(e => ({
+                name: e.nome,
+                value: e.getDesempenho(),
+                color: this.calcularCor(e.getMudancaPercentual())
+            }));
+
+            const root = d3.hierarchy({ children: data })
+                .sum(d => d.value);
+
+            d3.treemap()
+                .size([this.container.clientWidth, this.container.clientHeight])
+                .padding(1)
+                (root);
+
+            const nodes = d3.select(this.container)
+                .selectAll('.node')
+                .data(root.leaves(), d => d.data.name);
+
+            nodes.exit().remove();
+
+            const nodeEnter = nodes.enter().append('div')
+                .attr('class', 'node')
+                .style('position', 'absolute')
+                .style('border', '1px solid #000')
+                .style('box-sizing', 'border-box')
+                .style('text-align', 'center')
+                .style('line-height', '1.2')
+                .style('font-size', '12px')
+                .style('overflow', 'hidden')
+                .style('background-color', d => d.data.color)
+                .text(d => d.data.name);
+
+            nodes.merge(nodeEnter)
+                .style('left', d => `${d.x0}px`)
+                .style('top', d => `${d.y0}px`)
+                .style('width', d => `${d.x1 - d.x0}px`)
+                .style('height', d => `${d.y1 - d.y0}px`);
+        }
     }
-}
 
-document.getElementById('goleador-form').addEventListener('submit', function(event) {
-    event.preventDefault();
+    const form = document.getElementById('dataForm');
+    const treemap = new Treemap('treemap');
 
-    const name = document.getElementById('goleador-name').value.trim();
-    const gols2022 = parseInt(document.getElementById('gols2022').value);
-    const gols2023 = parseInt(document.getElementById('gols2023').value);
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
 
-    const goleador = new Goleador(name, gols2022, gols2023);
-    treemap.addGoleador(goleador);
+        const nome = document.getElementById('empresa').value;
+        const valor2023 = parseFloat(document.getElementById('valor2023').value);
+        const valor2024 = parseFloat(document.getElementById('valor2024').value);
 
-    document.getElementById('goleador-form').reset();
+        const empresa = new Empresa(nome, valor2023, valor2024);
+        treemap.adicionarEmpresa(empresa);
+
+        form.reset();
+    });
 });
-
-const treemap = new Treemap('treemap');
